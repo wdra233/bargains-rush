@@ -1,1 +1,47 @@
+spring:
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+  datasource:
+    url: jdbc:mysql://localhost:3306/bargain_rush?useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: wangyw123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    filters: stat
+    maxActive: 2
+    initialSize: 1
+    maxWait: 60000
+    minIdle: 1
+    timeBetweenEvictionRunsMillis: 60000
+    minEvictableIdleTimeMillis: 300000
+    validationQuery: select 'x'
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    poolPreparedStatements: true
+    maxPoolPreparedStatementPerConnectionSize: 20
 
+redis:
+  host: localhost
+  port: 6379
+  timeout: 3
+  password: wangyw123
+  poolMaxTotal: 10
+  poolMaxIdle: 10
+  poolMaxWait: 3
+
+
+
+
+
+mybatis:
+  type-aliases-package: com.eric.projects.bargainrush.domain
+  configuration:
+    map-underscore-to-camel-case: true
+    default-fetch-size: 100
+    default-statement-timeout: 3000
+
+  mapper-locations: classpath:com/eric/projects/bargainrush/dao/*.xml
+
+#druid

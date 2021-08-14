@@ -1,4 +1,4 @@
-package com.eric.projects.seckill;
+package com.eric.projects.bargainrush;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
