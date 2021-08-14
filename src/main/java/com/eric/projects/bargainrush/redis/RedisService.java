@@ -16,11 +16,12 @@ public class RedisService {
     @Autowired
     private JedisPool jedisPool;
 
-    public <T> T get(String key, Class<T> clazz) {
+    public <T> T get(KeyPrefix keyPrefix, String key, Class<T> clazz) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
-            String strValue = jedis.get(key);
+            String actualKey = formatKey(keyPrefix, key);
+            String strValue = jedis.get(actualKey);
             T value = stringToBean(strValue, clazz);
             return value;
         } finally {
@@ -28,7 +29,7 @@ public class RedisService {
         }
     }
 
-    public <T> boolean set(String key, T value) {
+    public <T> boolean set(KeyPrefix keyPrefix, String key, T value) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
@@ -36,12 +37,51 @@ public class RedisService {
             if (!StringUtils.hasText(strValue)) {
                 return false;
             }
-            jedis.set(key, strValue);
+            String realKey = formatKey(keyPrefix, key);
+            if (keyPrefix.expireSeconds() <= 0) {
+                jedis.set(realKey, strValue);
+            } else {
+                jedis.setex(realKey, keyPrefix.expireSeconds(), strValue);
+            }
             return true;
         } finally {
             returnToPool(jedis);
         }
     }
+
+    public boolean exists(KeyPrefix keyPrefix, String key) {
+        Jedis jedis = null;
+        try {
+            jedis = jedisPool.getResource();
+            String realKey = formatKey(keyPrefix, key);
+            return jedis.exists(realKey);
+        } finally {
+            returnToPool(jedis);
+        }
+    }
+
+    public Long incr(KeyPrefix keyPrefix, String key) {
+        Jedis jedis = null;
+        try {
+            jedis = jedisPool.getResource();
+            String realKey = formatKey(keyPrefix, key);
+            return jedis.incr(realKey);
+        } finally {
+            returnToPool(jedis);
+        }
+    }
+
+    public Long decr(KeyPrefix keyPrefix, String key) {
+        Jedis jedis = null;
+        try {
+            jedis = jedisPool.getResource();
+            String realKey = formatKey(keyPrefix, key);
+            return jedis.decr(realKey);
+        } finally {
+            returnToPool(jedis);
+        }
+    }
+
 
     private <T> T stringToBean(String str, Class<T> clazz) {
         if(!StringUtils.hasText(str) || clazz == null) {
@@ -80,6 +120,10 @@ public class RedisService {
         if (jedis != null) {
             jedis.close();
         }
+    }
+
+    private String formatKey(KeyPrefix keyPrefix, String key) {
+        return keyPrefix.getPrefix() + ":" + key;
     }
 
 }

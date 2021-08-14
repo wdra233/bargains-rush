@@ -14,8 +14,9 @@ public abstract class BasePrefix implements KeyPrefix {
         this.expireSeconds = expireSeconds;
         this.prefix = prefix;
     }
+
     @Override
-    public int expireSeconds() {
+    public long expireSeconds() {
         return expireSeconds;
     }
 

@@ -3,6 +3,7 @@ package com.eric.projects.bargainrush.controller;
 import com.eric.projects.bargainrush.Result;
 import com.eric.projects.bargainrush.domain.User;
 import com.eric.projects.bargainrush.redis.RedisService;
+import com.eric.projects.bargainrush.redis.UserKey;
 import com.eric.projects.bargainrush.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -43,8 +44,19 @@ public class SampleController {
     @RequestMapping("/redis/get")
     @ResponseBody
     public Result<String> redisGetTest() {
-        final String value = redisService.get("key1", String.class);
+        final String value = redisService.get(UserKey.getById, "key1", String.class);
         return Result.success(value);
+    }
+
+    @RequestMapping("/redis/set")
+    @ResponseBody
+    public Result<Boolean> redisSetTest() {
+
+        User user = new User();
+        user.setId(1);
+        user.setName("1111");
+        redisService.set(UserKey.getById, "key1", user);
+        return Result.success(true);
     }
 
 

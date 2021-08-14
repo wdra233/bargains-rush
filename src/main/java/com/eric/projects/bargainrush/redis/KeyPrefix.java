@@ -1,7 +1,7 @@
 package com.eric.projects.bargainrush.redis;
 
 public interface KeyPrefix {
-    int expireSeconds();
+    long expireSeconds();
 
     String getPrefix();
 }
