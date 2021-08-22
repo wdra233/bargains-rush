@@ -2,32 +2,77 @@ package com.eric.projects.bargainrush.service;
 
 import com.eric.projects.bargainrush.dao.UserDao;
 import com.eric.projects.bargainrush.domain.User;
+import com.eric.projects.bargainrush.exception.GlobalException;
+import com.eric.projects.bargainrush.redis.BargainRushUserKey;
+import com.eric.projects.bargainrush.redis.RedisService;
+import com.eric.projects.bargainrush.result.CodeMsg;
+import com.eric.projects.bargainrush.util.MD5Util;
+import com.eric.projects.bargainrush.util.UUIDUtil;
+import com.eric.projects.bargainrush.vo.LoginVo;
+import jdk.nashorn.internal.objects.Global;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 
 @Service
 public class UserService {
 
+    public static final String COOKIE_NAME_TOKEN = "token";
+
     @Autowired
     UserDao userDao;
 
-    public User getUserById(int id) {
-        return userDao.getUserById(id);
+    @Autowired
+    RedisService redisService;
+
+    public User getById(long id) {
+        return userDao.getById(id);
     }
 
-    @Transactional
-    public boolean tx() {
-        User u1 = new User();
-        u1.setId(1);
-        u1.setName("u1");
-        userDao.insert(u1);
+    public User getByToken(HttpServletResponse response, String token) {
+        if (StringUtils.isEmpty(token)) {
+            return null;
+        }
+        User user = redisService.get(BargainRushUserKey.TOKEN, token, User.class);
+        if (user != null) {
+            addCookie(response, token, user);
+        }
+        return user;
+    }
 
-        User u2 = new User();
-        u2.setId(2);
-        u2.setName("u2");
-        userDao.insert(u2);
+    public boolean login(HttpServletResponse response, LoginVo loginVo) {
+        if (loginVo == null) {
+            throw new GlobalException(CodeMsg.SERVER_ERROR);
+        }
 
+        String mobile = loginVo.getMobile();
+        String password = loginVo.getPassword();
+
+        User user = getById(Long.parseLong(mobile));
+        if (user == null) {
+            throw new GlobalException(CodeMsg.MOBILE_NOT_EXIST);
+        }
+
+        String dbPass = user.getPassword();
+        String saltDB = user.getSalt();
+        String calcPass = MD5Util.formPassToDbPass(password, saltDB);
+        if (!calcPass.equals(dbPass)) {
+            throw new GlobalException(CodeMsg.PASSWORD_ERROR);
+        }
+
+        String token = UUIDUtil.uuid();
+        addCookie(response, token, user);
         return true;
+    }
+
+    private void addCookie(HttpServletResponse response, String token, User user) {
+        redisService.set(BargainRushUserKey.TOKEN, token, user);
+        Cookie cookie = new Cookie(COOKIE_NAME_TOKEN, token);
+        cookie.setMaxAge((int) BargainRushUserKey.TOKEN.expireSeconds());
+        cookie.setPath("/");
+        response.addCookie(cookie);
     }
 }
