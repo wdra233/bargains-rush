@@ -24,6 +24,8 @@ public class CodeMsg {
     public static CodeMsg MOBILE_NOT_EXIST = new CodeMsg(500214, "Mobile number not exist");
     public static CodeMsg PASSWORD_ERROR = new CodeMsg(500215, "Password error");
 
+    public static CodeMsg BARGAIN_COMPLETE = new CodeMsg(500500, "商品已经秒杀完毕");
+    public static CodeMsg DUPLICATE_BARGAIN = new CodeMsg(500501, "不能重复秒杀");
 
     public CodeMsg fillArgs(Object... args) {
         int code = this.code;
