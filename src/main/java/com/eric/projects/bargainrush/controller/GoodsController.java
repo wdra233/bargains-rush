@@ -1,16 +1,24 @@
 package com.eric.projects.bargainrush.controller;
 
 import com.eric.projects.bargainrush.domain.User;
+import com.eric.projects.bargainrush.redis.GoodsKey;
 import com.eric.projects.bargainrush.redis.RedisService;
 import com.eric.projects.bargainrush.service.GoodsService;
 import com.eric.projects.bargainrush.service.UserService;
 import com.eric.projects.bargainrush.vo.GoodsVo;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.thymeleaf.context.WebContext;
+import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @Controller
@@ -26,20 +34,42 @@ public class GoodsController {
     @Autowired
     GoodsService goodsService;
 
-    @RequestMapping("/to_list")
-    public String list(Model model, User user) {
-        model.addAttribute("user", user);
+    @Autowired
+    ThymeleafViewResolver thymeleafViewResolver;
 
+    @RequestMapping(value = "/to_list", produces = "text/html")
+    @ResponseBody
+    public String list(HttpServletRequest request, HttpServletResponse response, Model model, User user) {
+        // page caching
+        String html = redisService.get(GoodsKey.getGoodsList, "" , String.class);
+        if (!StringUtils.isEmpty(html)) {
+            return html;
+        }
+
+        model.addAttribute("user", user);
         List<GoodsVo> goodsList = goodsService.listGoodsVo();
         model.addAttribute("goodsList", goodsList);
-        return "goods_list";
+        WebContext ctx = new WebContext(request,response,
+                request.getServletContext(),request.getLocale(), model.asMap());
+        html = thymeleafViewResolver.getTemplateEngine().process("goods_list", ctx);
+        if (!StringUtils.isEmpty(html)) {
+            redisService.set(GoodsKey.getGoodsList, "", html);
+        }
+        return html;
     }
 
-    @RequestMapping("/to_detail/{goodsId}")
-    public String detail(Model model, User user,
+    @RequestMapping(value = "/to_detail/{goodsId}", produces = "text/html")
+    @ResponseBody
+    public String detail(HttpServletRequest request, HttpServletResponse response, Model model, User user,
                          @PathVariable("goodsId") long goodsId) {
-        model.addAttribute("user", user);
 
+        // retrieve cache
+        String html = redisService.get(GoodsKey.getGoodsDetail, ""+goodsId, String.class);
+        if(!StringUtils.isEmpty(html)) {
+            return html;
+        }
+
+        model.addAttribute("user", user);
         final GoodsVo goods = goodsService.getByGoodsId(goodsId);
         model.addAttribute("goods", goods);
 
@@ -62,7 +92,13 @@ public class GoodsController {
 
         model.addAttribute("bargainStatus", bargainStatus);
         model.addAttribute("remainSeconds", remainSeconds);
-        return "goods_detail";
+        WebContext ctx = new WebContext(request,response,
+                request.getServletContext(),request.getLocale(), model.asMap());
+        html = thymeleafViewResolver.getTemplateEngine().process("goods_detail", ctx);
+        if (!StringUtils.isEmpty(html)) {
+            redisService.set(GoodsKey.getGoodsDetail, ""+goodsId, html);
+        }
+        return html;
     }
 
 }

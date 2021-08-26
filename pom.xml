@@ -10,6 +10,7 @@
     </parent>
     <groupId>com.eric.projects</groupId>
     <artifactId>bargain-rush</artifactId>
+    <packaging>jar</packaging>
     <version>0.0.1-SNAPSHOT</version>
     <name>bargain-rush</name>
     <description>Demo project for Spring Boot</description>
@@ -76,6 +77,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-tomcat</artifactId>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -84,6 +91,7 @@
     </dependencies>
 
     <build>
+        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -97,6 +105,14 @@
                     </excludes>
                 </configuration>
             </plugin>
+
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-war-plugin</artifactId>-->
+<!--                <configuration>-->
+<!--                    <failOnMissingWebXml>false</failOnMissingWebXml>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
         </plugins>
     </build>
 
