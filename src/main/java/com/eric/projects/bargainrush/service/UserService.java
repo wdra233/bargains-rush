@@ -29,7 +29,33 @@ public class UserService {
     RedisService redisService;
 
     public User getById(long id) {
-        return userDao.getById(id);
+        User user = redisService.get(BargainRushUserKey.getById, "" + id, User.class);
+        if (user != null) {
+            return user;
+        }
+        user = userDao.getById(id);
+        if (user != null) {
+            redisService.set(BargainRushUserKey.getById, "" + id, user);
+        }
+        return user;
+    }
+
+    public boolean updatePassword(String token, long id, String formPass) {
+        User user = getById(id);
+        if (user == null) {
+            throw new GlobalException(CodeMsg.MOBILE_NOT_EXIST);
+        }
+
+        User toBeUpdated = new User();
+        toBeUpdated.setId(id);
+        toBeUpdated.setPassword(MD5Util.formPassToDbPass(formPass, user.getSalt()));
+        userDao.update(toBeUpdated);
+
+        // clear cache
+        boolean delSuccess = redisService.delete(BargainRushUserKey.getById, ""+id);
+        user.setPassword(toBeUpdated.getPassword());
+        boolean updateSuccess = redisService.set(BargainRushUserKey.TOKEN, token, user);
+        return delSuccess && updateSuccess;
     }
 
     public User getByToken(HttpServletResponse response, String token) {

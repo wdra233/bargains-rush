@@ -1,6 +1,5 @@
 package com.eric.projects.bargainrush.result;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data

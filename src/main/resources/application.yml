@@ -2,6 +2,11 @@ spring:
   thymeleaf:
     prefix: classpath:/templates/
     suffix: .html
+    cache: false
+    content-type: text/html
+    enabled: true
+    encoding: UTF-8
+    mode: HTML5
   datasource:
     url: jdbc:mysql://localhost:3306/bargain_rush?useUnicode=true&characterEncoding=utf-8
     username: root

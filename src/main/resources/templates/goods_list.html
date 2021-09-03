@@ -30,7 +30,7 @@
             <td th:text="${goods.goodsPrice}"></td>
             <td th:text="${goods.bargainPrice}"></td>
             <td th:text="${goods.stockCount}"></td>
-            <td><a th:href="'/goods/to_detail/'+${goods.id}">detailed info</a></td>
+            <td><a th:href="'/goods_detail.htm?goodsId='+${goods.id}">detailed info</a></td>
         </tr>
     </table>
 </div>

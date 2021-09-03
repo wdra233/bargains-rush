@@ -82,6 +82,18 @@ public class RedisService {
         }
     }
 
+    public boolean delete(BargainRushUserKey keyPrefix, String key) {
+        Jedis jedis = null;
+        try {
+            jedis = jedisPool.getResource();
+            String realKey = formatKey(keyPrefix, key);
+            long ret = jedis.del(realKey);
+            return ret > 0;
+        } finally {
+            returnToPool(jedis);
+        }
+    }
+
 
     private <T> T stringToBean(String str, Class<T> clazz) {
         if(!StringUtils.hasText(str) || clazz == null) {
@@ -125,5 +137,4 @@ public class RedisService {
     private String formatKey(KeyPrefix keyPrefix, String key) {
         return keyPrefix.getPrefix() + ":" + key;
     }
-
 }

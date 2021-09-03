@@ -3,8 +3,10 @@ package com.eric.projects.bargainrush.controller;
 import com.eric.projects.bargainrush.domain.User;
 import com.eric.projects.bargainrush.redis.GoodsKey;
 import com.eric.projects.bargainrush.redis.RedisService;
+import com.eric.projects.bargainrush.result.Result;
 import com.eric.projects.bargainrush.service.GoodsService;
 import com.eric.projects.bargainrush.service.UserService;
+import com.eric.projects.bargainrush.vo.GoodsDetailVo;
 import com.eric.projects.bargainrush.vo.GoodsVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,6 +101,36 @@ public class GoodsController {
             redisService.set(GoodsKey.getGoodsDetail, ""+goodsId, html);
         }
         return html;
+    }
+
+    @RequestMapping(value = "/detail/{goodsId}")
+    @ResponseBody
+    public Result<GoodsDetailVo> detail(User user, @PathVariable("goodsId") long goodsId) {
+        GoodsVo goods = goodsService.getByGoodsId(goodsId);
+
+        long startAt = goods.getStartDate().getTime();
+        long endAt = goods.getEndDate().getTime();
+        long now = System.currentTimeMillis();
+
+        int bargainStatus = 0;
+        int remainSeconds = 0;
+        if (now < startAt) {
+            bargainStatus = 0;
+            remainSeconds = (int)((startAt - now) / 1000);
+        } else if (now > endAt) {
+            bargainStatus = 2;
+            remainSeconds = -1;
+        } else {
+            bargainStatus = 1;
+            remainSeconds = 0;
+        }
+
+        GoodsDetailVo detailVo = new GoodsDetailVo();
+        detailVo.setGoods(goods);
+        detailVo.setBargainStatus(bargainStatus);
+        detailVo.setRemainSeconds(remainSeconds);
+        detailVo.setUser(user);
+        return Result.success(detailVo);
     }
 
 }

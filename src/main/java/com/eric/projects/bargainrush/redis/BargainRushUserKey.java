@@ -6,5 +6,6 @@ public class BargainRushUserKey extends BasePrefix {
         super(expireSeconds, prefix);
     }
     public static BargainRushUserKey TOKEN = new BargainRushUserKey(TOKEN_EXPIRE, "token");
+    public static BargainRushUserKey getById = new BargainRushUserKey(0, "id");
 
 }
