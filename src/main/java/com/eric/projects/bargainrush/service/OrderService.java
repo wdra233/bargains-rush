@@ -4,6 +4,8 @@ import com.eric.projects.bargainrush.dao.OrderDao;
 import com.eric.projects.bargainrush.domain.BargainRushOrder;
 import com.eric.projects.bargainrush.domain.OrderInfo;
 import com.eric.projects.bargainrush.domain.User;
+import com.eric.projects.bargainrush.redis.OrderKey;
+import com.eric.projects.bargainrush.redis.RedisService;
 import com.eric.projects.bargainrush.vo.GoodsVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,8 +19,15 @@ public class OrderService {
     @Autowired
     OrderDao orderDao;
 
+    @Autowired
+    RedisService redisService;
+
     public BargainRushOrder getByUserIdGoodsId(long userId, long goodsId) {
-        return orderDao.getBargainRushOrderByUserIdGoodsId(userId, goodsId);
+        return redisService.get(OrderKey.getBargainRushOrderByUidGid, ""+userId+"_"+goodsId, BargainRushOrder.class);
+    }
+
+    public OrderInfo getOrderById(long orderId) {
+        return orderDao.getOrderById(orderId);
     }
 
 
@@ -42,6 +51,10 @@ public class OrderService {
         bargainRushOrder.setUserId(user.getId());
         orderDao.insertBargainRushOrder(bargainRushOrder);
 
+        redisService.set(OrderKey.getBargainRushOrderByUidGid, ""+user.getId()+"_"+goods.getId(), bargainRushOrder);
+
         return orderInfo;
     }
+
+
 }

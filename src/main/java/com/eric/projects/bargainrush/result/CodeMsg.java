@@ -6,11 +6,11 @@ import lombok.Getter;
 public class CodeMsg {
     private int code;
     private String msg;
-
     private CodeMsg(int code, String msg ){
         this.code = code;
         this.msg = msg;
     }
+
 
 
     public static CodeMsg SUCCESS = new CodeMsg(0, "success");
@@ -24,8 +24,9 @@ public class CodeMsg {
     public static CodeMsg MOBILE_NOT_EXIST = new CodeMsg(500214, "Mobile number not exist");
     public static CodeMsg PASSWORD_ERROR = new CodeMsg(500215, "Password error");
 
-    public static CodeMsg BARGAIN_COMPLETE = new CodeMsg(500500, "商品已经秒杀完毕");
-    public static CodeMsg DUPLICATE_BARGAIN = new CodeMsg(500501, "不能重复秒杀");
+    public static CodeMsg BARGAIN_COMPLETE = new CodeMsg(500500, "Bargain item complete");
+    public static CodeMsg DUPLICATE_BARGAIN = new CodeMsg(500501, "Duplicate bargain order not allowed");
+    public static CodeMsg ORDER_NOT_EXIST = new CodeMsg(500400, "Order not exists");
 
     public CodeMsg fillArgs(Object... args) {
         int code = this.code;
