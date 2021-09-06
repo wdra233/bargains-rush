@@ -26,6 +26,16 @@ spring:
     testOnReturn: false
     poolPreparedStatements: true
     maxPoolPreparedStatementPerConnectionSize: 20
+  web:
+    resources:
+      add-mappings: true
+      cache:
+        period: 3600
+      chain:
+        cache: true
+        enabled: true
+        compressed: true
+      static-locations: classpath:/static/
 
 redis:
   host: localhost
