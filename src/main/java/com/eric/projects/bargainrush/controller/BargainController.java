@@ -3,6 +3,9 @@ package com.eric.projects.bargainrush.controller;
 import com.eric.projects.bargainrush.domain.BargainRushOrder;
 import com.eric.projects.bargainrush.domain.OrderInfo;
 import com.eric.projects.bargainrush.domain.User;
+import com.eric.projects.bargainrush.rabbitmq.BargainRushMessage;
+import com.eric.projects.bargainrush.rabbitmq.MQSender;
+import com.eric.projects.bargainrush.redis.GoodsKey;
 import com.eric.projects.bargainrush.redis.RedisService;
 import com.eric.projects.bargainrush.result.CodeMsg;
 import com.eric.projects.bargainrush.result.Result;
@@ -10,17 +13,19 @@ import com.eric.projects.bargainrush.service.BargainRushService;
 import com.eric.projects.bargainrush.service.GoodsService;
 import com.eric.projects.bargainrush.service.OrderService;
 import com.eric.projects.bargainrush.vo.GoodsVo;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Controller
 @RequestMapping("/bargain")
-public class BargainController {
+public class BargainController implements InitializingBean {
 
     @Autowired
     GoodsService goodsService;
@@ -34,17 +39,42 @@ public class BargainController {
     @Autowired
     OrderService orderService;
 
+    @Autowired
+    MQSender sender;
+
+    private static final Map<Long, Boolean> localMap = new ConcurrentHashMap<>();
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        List<GoodsVo> goodsList = goodsService.listGoodsVo();
+        if (goodsList == null) {
+            return;
+        }
+
+        for (GoodsVo goods : goodsList) {
+            redisService.set(GoodsKey.getGoodsStock, ""+goods.getId(), goods.getStockCount());
+            localMap.put(goods.getId(), false);
+        }
+
+
+    }
+
     @PostMapping("/do_bargain")
     @ResponseBody
-    public Result<OrderInfo> list(User user,
+    public Result<Integer> doBargain(User user,
                        @RequestParam("goodsId") long goodsId) {
         if (user == null) {
             return Result.error(CodeMsg.SESSION_ERROR);
         }
 
-        GoodsVo goods = goodsService.getByGoodsId(goodsId);
-        int stockCount = goods.getStockCount();
-        if (stockCount <= 0) {
+        boolean complete = localMap.get(goodsId);
+        if (complete) {
+            return Result.error(CodeMsg.SESSION_ERROR);
+        }
+
+        long stock = redisService.decr(GoodsKey.getGoodsStock, ""+goodsId);
+        if (stock < 0) {
+            localMap.put(goodsId, true);
             return Result.error(CodeMsg.BARGAIN_COMPLETE);
         }
 
@@ -53,8 +83,21 @@ public class BargainController {
             return Result.error(CodeMsg.DUPLICATE_BARGAIN);
         }
 
-        // reduce stock,create an orderInfo using bargainrush_service
-        final OrderInfo orderInfo = bargainRushService.goBargain(user, goods);
-        return Result.success(orderInfo);
+        BargainRushMessage message = new BargainRushMessage();
+        message.setUser(user);
+        message.setGoodsId(goodsId);
+
+        sender.sendBargainRushMessage(message);
+        return Result.success(0); // enqueue
+    }
+
+    @GetMapping("/result")
+    @ResponseBody
+    public Result<Long> bargainResult(User user, @RequestParam("goodsId")long goodsId) {
+        if (user == null) {
+            return Result.error(CodeMsg.SESSION_ERROR);
+        }
+        long result = bargainRushService.getResult(user.getId(), goodsId);
+        return Result.success(result);
     }
 }

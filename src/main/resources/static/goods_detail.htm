@@ -64,6 +64,42 @@
 </body>
 <script>
 
+    function getBargainResult(goodsId) {
+        g_showLoading();
+        $.ajax({
+            url:"/bargain/result",
+            type:"GET",
+            data:{
+                goodsId:$("#goodsId").val(),
+            },
+            success:function(data){
+                if(data.code == 0){
+                    var result = data.data;
+                    if(result < 0){
+                        layer.msg("Failed to get the bargain!");
+                    }else if(result == 0){//polling
+                        setTimeout(function(){
+                            getBargainResult(goodsId);
+                        }, 50);
+                    }else{
+                        layer.confirm("Congrats! Checkout your order?", {btn:["Confirm","Cancel"]},
+                            function(){
+                                window.location.href="/order_detail.htm?orderId="+result;
+                            },
+                            function(){
+                                layer.closeAll();
+                            });
+                    }
+                }else{
+                    layer.msg(data.msg);
+                }
+            },
+            error:function(){
+                layer.msg("invalid client request");
+            }
+        });
+    }
+
     function doBargain(){
         $.ajax({
             url:"/bargain/do_bargain",
@@ -73,7 +109,7 @@
             },
             success:function(data){
                 if(data.code == 0){
-                    window.location.href="/order_detail.htm?orderId="+data.data.id;
+                    getBargainResult($("#goodsId").val());
                 }else{
                     layer.msg(data.msg);
                 }
