@@ -43,7 +43,7 @@
                 <span id="bargainTip"></span>
             </td>
             <td>
-                <button class="btn btn-primary btn-block" type="button" id="buyButton"onclick="doBargain()">Buy now!!</button>
+                <button class="btn btn-primary btn-block" type="button" id="buyButton"onclick="getBargainPath()">Buy now!!</button>
                 <input type="hidden" name="goodsId"  id="goodsId" />
             </td>
         </tr>
@@ -63,6 +63,29 @@
 </div>
 </body>
 <script>
+    function getBargainPath() {
+        g_showLoading();
+        var goodsId = $("#goodsId").val();
+        $.ajax({
+            url: "/bargain/path",
+            type: "GET",
+            data: {
+                goodsId: goodsId
+            },
+            success: function(data){
+                if(data.code == 0){
+                    var path = data.data;
+                    doBargain(path);
+                }else{
+                    layer.msg(data.msg);
+                }
+            },
+            error: function () {
+                layer.msg("invalid client request");
+            }
+
+        });
+    }
 
     function getBargainResult(goodsId) {
         g_showLoading();
@@ -100,9 +123,9 @@
         });
     }
 
-    function doBargain(){
+    function doBargain(path){
         $.ajax({
-            url:"/bargain/do_bargain",
+            url:"/bargain/"+ path +"/do_bargain",
             type:"POST",
             data:{
                 goodsId:$("#goodsId").val(),

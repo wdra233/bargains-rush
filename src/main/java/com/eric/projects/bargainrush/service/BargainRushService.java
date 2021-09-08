@@ -5,6 +5,8 @@ import com.eric.projects.bargainrush.domain.OrderInfo;
 import com.eric.projects.bargainrush.domain.User;
 import com.eric.projects.bargainrush.redis.BargainRushKey;
 import com.eric.projects.bargainrush.redis.RedisService;
+import com.eric.projects.bargainrush.util.MD5Util;
+import com.eric.projects.bargainrush.util.UUIDUtil;
 import com.eric.projects.bargainrush.vo.GoodsVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -53,5 +55,22 @@ public class BargainRushService {
             }
         }
 
+    }
+
+    public String createBargainPath(User user, long goodsId) {
+        if (user == null || goodsId <= 0) {
+            return null;
+        }
+        String str = MD5Util.md5(UUIDUtil.uuid()+"123456");
+        redisService.set(BargainRushKey.getBargainPath, ""+user.getId() + "_"+ goodsId, str);
+        return str;
+    }
+
+    public boolean checkPath(User user, long goodsId, String path) {
+        if (user == null || path == null) {
+            return false;
+        }
+        String originalPath = redisService.get(BargainRushKey.getBargainPath, ""+user.getId()+"_"+goodsId, String.class);
+        return path.equals(originalPath);
     }
 }

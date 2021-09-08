@@ -28,6 +28,9 @@ public class CodeMsg {
     public static CodeMsg DUPLICATE_BARGAIN = new CodeMsg(500501, "Duplicate bargain order not allowed");
     public static CodeMsg ORDER_NOT_EXIST = new CodeMsg(500400, "Order not exists");
 
+    public static CodeMsg REQUEST_ILLEGAL = new CodeMsg(500102, "illegal request");
+
+
     public CodeMsg fillArgs(Object... args) {
         int code = this.code;
         String message = String.format(this.msg, args);

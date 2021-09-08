@@ -59,12 +59,17 @@ public class BargainController implements InitializingBean {
 
     }
 
-    @PostMapping("/do_bargain")
+    @PostMapping("/{path}/do_bargain")
     @ResponseBody
     public Result<Integer> doBargain(User user,
-                       @RequestParam("goodsId") long goodsId) {
+                       @RequestParam("goodsId") long goodsId, @PathVariable("path")String path) {
         if (user == null) {
             return Result.error(CodeMsg.SESSION_ERROR);
+        }
+
+        boolean isValidPath = bargainRushService.checkPath(user, goodsId, path);
+        if (!isValidPath) {
+            return Result.error(CodeMsg.REQUEST_ILLEGAL);
         }
 
         boolean complete = localMap.get(goodsId);
@@ -99,5 +104,15 @@ public class BargainController implements InitializingBean {
         }
         long result = bargainRushService.getResult(user.getId(), goodsId);
         return Result.success(result);
+    }
+
+    @GetMapping("/path")
+    @ResponseBody
+    public Result<String> getBargainPath(User user, @RequestParam("goodsId")long goodsId) {
+        if (user == null) {
+            return Result.error(CodeMsg.SESSION_ERROR);
+        }
+        String path = bargainRushService.createBargainPath(user, goodsId);
+        return Result.success(path);
     }
 }
