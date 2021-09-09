@@ -43,7 +43,13 @@
                 <span id="bargainTip"></span>
             </td>
             <td>
-                <button class="btn btn-primary btn-block" type="button" id="buyButton"onclick="getBargainPath()">Buy now!!</button>
+                <div class="row">
+                    <div class="form-inline">
+                        <img id="verifyCodeImg" width="80" height="32"  style="display:none" onclick="refreshVerifyCode()"/>
+                        <input id="verifyCode"  class="form-control" style="display:none"/>
+                        <button class="btn btn-primary" type="button" id="buyButton"onclick="getBargainPath()">BUY NOW!!</button>
+                    </div>
+                </div>
                 <input type="hidden" name="goodsId"  id="goodsId" />
             </td>
         </tr>
@@ -70,7 +76,8 @@
             url: "/bargain/path",
             type: "GET",
             data: {
-                goodsId: goodsId
+                goodsId: goodsId,
+                verifyCode: $("#verifyCode").val()
             },
             success: function(data){
                 if(data.code == 0){
@@ -203,10 +210,19 @@
                 clearTimeout(timeout);
             }
             $("#bargainTip").html("Bargain in progress");
+            $("#verifyCodeImg").attr("src", "/bargain/verifyCode?goodsId="+$("#goodsId").val());
+            $("#verifyCodeImg").show();
+            $("#verifyCode").show();
         }else{//Bargain complete
             $("#buyButton").attr("disabled", true);
             $("#bargainTip").html("bargain complete!");
+            $("#verifyCodeImg").hide();
+            $("#verifyCode").hide();
         }
+    }
+
+    function refreshVerifyCode() {
+        $("#verifyCodeImg").attr("src", "/bargain/verifyCode?goodsId="+$("#goodsId").val()+"&timestamp="+new Date().getTime());
     }
 
 </script>

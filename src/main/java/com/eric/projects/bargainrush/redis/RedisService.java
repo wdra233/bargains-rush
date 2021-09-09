@@ -82,7 +82,7 @@ public class RedisService {
         }
     }
 
-    public boolean delete(BargainRushUserKey keyPrefix, String key) {
+    public boolean delete(KeyPrefix keyPrefix, String key) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();

@@ -25,6 +25,7 @@ public class CodeMsg {
     public static CodeMsg PASSWORD_ERROR = new CodeMsg(500215, "Password error");
 
     public static CodeMsg BARGAIN_COMPLETE = new CodeMsg(500500, "Bargain item complete");
+    public static CodeMsg BARGAIN_FAIL = new CodeMsg(500502, "BargainRush Failed");
     public static CodeMsg DUPLICATE_BARGAIN = new CodeMsg(500501, "Duplicate bargain order not allowed");
     public static CodeMsg ORDER_NOT_EXIST = new CodeMsg(500400, "Order not exists");
 

@@ -19,6 +19,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import javax.imageio.ImageIO;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -108,11 +112,40 @@ public class BargainController implements InitializingBean {
 
     @GetMapping("/path")
     @ResponseBody
-    public Result<String> getBargainPath(User user, @RequestParam("goodsId")long goodsId) {
+    public Result<String> getBargainPath(
+            User user,
+            @RequestParam("goodsId")long goodsId,
+            @RequestParam(value = "verifyCode", defaultValue = "0") int verifyCode) {
         if (user == null) {
             return Result.error(CodeMsg.SESSION_ERROR);
         }
+        boolean isValidCode = bargainRushService.checkVerifyCode(user, goodsId, verifyCode);
+        if (!isValidCode) {
+            return Result.error(CodeMsg.REQUEST_ILLEGAL);
+        }
         String path = bargainRushService.createBargainPath(user, goodsId);
         return Result.success(path);
+    }
+
+    @GetMapping("/verifyCode")
+    @ResponseBody
+    public Result<String> getBargainVerifyCode(
+            HttpServletResponse response,
+            User user,
+            @RequestParam("goodsId")long goodsId) {
+        if (user == null) {
+            return Result.error(CodeMsg.SESSION_ERROR);
+        }
+        try {
+            BufferedImage img = bargainRushService.createVerifyCode(user, goodsId);
+            ServletOutputStream outputStream = response.getOutputStream();
+            ImageIO.write(img, "JPEG", outputStream);
+            outputStream.flush();
+            outputStream.close();
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error(CodeMsg.BARGAIN_FAIL);
+        }
     }
 }
