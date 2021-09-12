@@ -1,7 +1,7 @@
 package com.eric.projects.bargainrush.controller;
 
+import com.eric.projects.bargainrush.access.AccessLimit;
 import com.eric.projects.bargainrush.domain.BargainRushOrder;
-import com.eric.projects.bargainrush.domain.OrderInfo;
 import com.eric.projects.bargainrush.domain.User;
 import com.eric.projects.bargainrush.rabbitmq.BargainRushMessage;
 import com.eric.projects.bargainrush.rabbitmq.MQSender;
@@ -110,6 +110,7 @@ public class BargainController implements InitializingBean {
         return Result.success(result);
     }
 
+    @AccessLimit(seconds = 5, maxCount = 5, needLogin = true)
     @GetMapping("/path")
     @ResponseBody
     public Result<String> getBargainPath(

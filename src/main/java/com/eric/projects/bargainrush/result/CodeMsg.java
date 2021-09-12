@@ -30,6 +30,7 @@ public class CodeMsg {
     public static CodeMsg ORDER_NOT_EXIST = new CodeMsg(500400, "Order not exists");
 
     public static CodeMsg REQUEST_ILLEGAL = new CodeMsg(500102, "illegal request");
+    public static CodeMsg ACCESS_LIMIT_REACHED = new CodeMsg(500104, "Too frequent access!");
 
 
     public CodeMsg fillArgs(Object... args) {
